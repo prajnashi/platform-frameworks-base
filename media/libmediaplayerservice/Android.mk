@@ -30,6 +30,16 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_C_INCLUDES := external/tremor/Tremor \
 	$(call include-path-for, graphics corecg)
 
+# build with gstreamer player
+BUILD_WITH_GST := true
+ifeq ($(BUILD_WITH_GST), true)
+LOCAL_SHARED_LIBRARIES += \
+	libgst_player
+LOCAL_C_INCLUDES += \
+	external/gst-plugins-android/player
+LOCAL_CFLAGS += -DBUILD_WITH_GST
+endif	
+
 LOCAL_MODULE:= libmediaplayerservice
 
 include $(BUILD_SHARED_LIBRARY)

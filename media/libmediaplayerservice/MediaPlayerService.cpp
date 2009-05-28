@@ -48,6 +48,9 @@
 #include "MidiFile.h"
 #include "VorbisPlayer.h"
 #include <media/PVPlayer.h>
+#ifdef BUILD_WITH_GST
+#include <GstPlayer.h>
+#endif
 
 /* desktop Linux needs a little help with gettid() */
 #if defined(HAVE_GETTID) && !defined(HAVE_ANDROID_OS)
@@ -504,6 +507,12 @@ static player_type getPlayerType(int fd, int64_t offset, int64_t length)
         EAS_Shutdown(easdata);
     }
 
+#ifdef BUILD_WITH_GST
+    // if GST_CONFIG_FILE exists, replace pv player with gst player
+    if (access(GST_CONFIG_FILE, 0) == 0)
+        return GST_PLAYER;
+#endif // BUILD_WITH_GST
+
     // Fall through to PV
     return PV_PLAYER;
 }
@@ -512,6 +521,7 @@ static player_type getPlayerType(const char* url)
 {
 
     // use MidiFile for MIDI extensions
+    LOGV(" getPlayerType, enter");
     int lenURL = strlen(url);
     for (int i = 0; i < NELEM(FILE_EXTS); ++i) {
         int len = strlen(FILE_EXTS[i].extension);
@@ -522,6 +532,12 @@ static player_type getPlayerType(const char* url)
             }
         }
     }
+
+#ifdef BUILD_WITH_GST
+    // if GST_CONFIG_FILE exists, replace pv player with gst player
+    if (access(GST_CONFIG_FILE, 0) == 0)
+        return GST_PLAYER;
+#endif // BUILD_WITH_GST
 
     // Fall through to PV
     return PV_PLAYER;
@@ -544,6 +560,12 @@ static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
             LOGV(" create VorbisPlayer");
             p = new VorbisPlayer();
             break;
+#ifdef BUILD_WITH_GST
+        case GST_PLAYER:
+            LOGV(" create GstPlayer");
+            p = new GstPlayer();
+            break;
+#endif            
     }
     if (p != NULL) {
         if (p->initCheck() == NO_ERROR) {
@@ -553,7 +575,7 @@ static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
         }
     }
     if (p == NULL) {
-        LOGE("Failed to create player object");
+        LOGE("Failed to create player object, PlayerType=%d", playerType );
     }
     return p;
 }

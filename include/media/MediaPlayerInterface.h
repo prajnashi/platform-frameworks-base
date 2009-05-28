@@ -30,7 +30,10 @@ namespace android {
 enum player_type {
     PV_PLAYER = 1,
     SONIVOX_PLAYER = 2,
-    VORBIS_PLAYER = 3
+    VORBIS_PLAYER = 3,
+#ifdef BUILD_WITH_GST    
+    GST_PLAYER = 4,
+#endif // BUILD_WITH_GST 
 };
 
 #define DEFAULT_AUDIOSINK_BUFFERCOUNT 4
